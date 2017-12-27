@@ -79,12 +79,23 @@
 
 
 
-<meta property="og:type" content="website">
+<meta name="description" content="[TOC] Guava EventBus 源码解析1. 引言​    偶然发现项目中使用了Guava EventBus，短短的不到十个类将pub-sub模式发挥的淋漓尽致。使用起来也非常的方便，为此本文将从源码角度分析Guava EventBus的设计思想。虽然ATA上已经有很多文章分析Guava EventBus了，但发现这些文章都比较久远，而且现在的源码实现方式已经发生了改变，所以本文重新分析">
+<meta property="og:type" content="article">
 <meta property="og:title" content="Hexo">
-<meta property="og:url" content="http://yoursite.com/index.html">
+<meta property="og:url" content="http://yoursite.com/2017/12/20/Guava EventBus 源码解析/index.html">
 <meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="[TOC] Guava EventBus 源码解析1. 引言​    偶然发现项目中使用了Guava EventBus，短短的不到十个类将pub-sub模式发挥的淋漓尽致。使用起来也非常的方便，为此本文将从源码角度分析Guava EventBus的设计思想。虽然ATA上已经有很多文章分析Guava EventBus了，但发现这些文章都比较久远，而且现在的源码实现方式已经发生了改变，所以本文重新分析">
+<meta property="og:image" content="http://yoursite.com/2017/12/20/Guava%20EventBus%20源码解析/pic/Guava-EventBus/EventBus-Publish-Subscribe.png">
+<meta property="og:image" content="http://yoursite.com/2017/12/20/Guava%20EventBus%20源码解析/pic/Guava-EventBus/eventbus-framework.png">
+<meta property="og:image" content="http://yoursite.com/2017/12/20/Guava%20EventBus%20源码解析/pic/Guava-EventBus/Dispatcher.png">
+<meta property="og:image" content="http://yoursite.com/2017/12/20/Guava%20EventBus%20源码解析/pic/Guava-EventBus/PerThreadQueuedDispatcher.png">
+<meta property="og:image" content="http://yoursite.com/2017/12/20/Guava%20EventBus%20源码解析/pic/Guava-EventBus/LegacyAsyncDispatcher.png">
+<meta property="og:image" content="http://yoursite.com/2017/12/20/Guava%20EventBus%20源码解析/pic/Guava-EventBus/ImmediateDispatcher.png">
+<meta property="og:updated_time" content="2017-12-27T03:24:03.237Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Hexo">
+<meta name="twitter:description" content="[TOC] Guava EventBus 源码解析1. 引言​    偶然发现项目中使用了Guava EventBus，短短的不到十个类将pub-sub模式发挥的淋漓尽致。使用起来也非常的方便，为此本文将从源码角度分析Guava EventBus的设计思想。虽然ATA上已经有很多文章分析Guava EventBus了，但发现这些文章都比较久远，而且现在的源码实现方式已经发生了改变，所以本文重新分析">
+<meta name="twitter:image" content="http://yoursite.com/2017/12/20/Guava%20EventBus%20源码解析/pic/Guava-EventBus/EventBus-Publish-Subscribe.png">
 
 
 
@@ -114,13 +125,13 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/"/>
+  <link rel="canonical" href="http://yoursite.com/2017/12/20/Guava EventBus 源码解析/"/>
 
 
 
 
 
-  <title>Hexo</title>
+  <title> | Hexo</title>
   
 
 
@@ -139,8 +150,7 @@
     
   
 
-  <div class="container sidebar-position-left 
-  page-home">
+  <div class="container sidebar-position-left page-post-detail">
     <div class="headband"></div>
 
     <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
@@ -213,9 +223,9 @@
         <div class="content-wrap">
           <div id="content" class="content">
             
-  <section id="posts" class="posts-expand">
+
+  <div id="posts" class="posts-expand">
     
-      
 
   
 
@@ -245,9 +255,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2017/12/20/Guava EventBus 源码解析/" itemprop="url">Untitled</a></h1>
+          <h1 class="post-title" itemprop="name headline"></h1>
         
 
         <div class="post-meta">
@@ -297,9 +305,7 @@
       
 
       
-        
-          
-            <p>[TOC]</p>
+        <p>[TOC]</p>
 <h1 id="Guava-EventBus-源码解析"><a href="#Guava-EventBus-源码解析" class="headerlink" title="Guava EventBus 源码解析"></a>Guava EventBus 源码解析</h1><h2 id="1-引言"><a href="#1-引言" class="headerlink" title="1. 引言"></a>1. 引言</h2><p>​    偶然发现项目中使用了Guava EventBus，短短的不到十个类将pub-sub模式发挥的淋漓尽致。使用起来也非常的方便，为此本文将从源码角度分析Guava EventBus的设计思想。虽然ATA上已经有很多文章分析Guava EventBus了，但发现这些文章都比较久远，而且现在的源码实现方式已经发生了改变，所以本文重新分析了Guava21版本的EventBus实现。</p>
 <h2 id="2-核心类图"><a href="#2-核心类图" class="headerlink" title="2. 核心类图"></a>2. 核心类图</h2><p>​    Guava EventBus作为pub-sub模式的践行者，无非就是完成这三个动作：</p>
 <ul>
@@ -361,8 +367,6 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"> <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * Dispatches &#123;<span class="doctag">@code</span> event&#125; to this subscriber using the proper executor.</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="function"><span class="keyword">final</span> <span class="keyword">void</span> <span class="title">dispatchEvent</span><span class="params">(<span class="keyword">final</span> Object event)</span> </span>&#123;</span><br><span class="line">    executor.execute(</span><br><span class="line">        <span class="keyword">new</span> Runnable() &#123;</span><br><span class="line">          <span class="meta">@Override</span></span><br><span class="line">          <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">              invokeSubscriberMethod(event);</span><br><span class="line">            &#125; <span class="keyword">catch</span> (InvocationTargetException e) &#123;</span><br><span class="line">              bus.handleSubscriberException(e.getCause(), context(event));</span><br><span class="line">            &#125;</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//真正处理事件的方法：可以看出来就是利用反射来执行该method而已。</span></span><br><span class="line"><span class="meta">@VisibleForTesting</span></span><br><span class="line">  <span class="function"><span class="keyword">void</span> <span class="title">invokeSubscriberMethod</span><span class="params">(Object event)</span> <span class="keyword">throws</span> InvocationTargetException </span>&#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      method.invoke(target, checkNotNull(event));</span><br><span class="line">    &#125; <span class="keyword">catch</span> (IllegalArgumentException e) &#123;</span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> Error(<span class="string">"Method rejected target/argument: "</span> + event, e);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (IllegalAccessException e) &#123;</span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> Error(<span class="string">"Method became inaccessible: "</span> + event, e);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (InvocationTargetException e) &#123;</span><br><span class="line">      <span class="keyword">if</span> (e.getCause() <span class="keyword">instanceof</span> Error) &#123;</span><br><span class="line">        <span class="keyword">throw</span> (Error) e.getCause();</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">throw</span> e;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"><span class="comment">//有些方法可能需要加锁，因此也给出了一个同步调用的方案。这个方案对应的是@AllowConcurrentEvents注解。</span></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">invokeSubscriberMethod</span><span class="params">(Object event)</span> <span class="keyword">throws</span> InvocationTargetException </span>&#123;</span><br><span class="line">      <span class="keyword">synchronized</span> (<span class="keyword">this</span>) &#123;</span><br><span class="line">        <span class="keyword">super</span>.invokeSubscriberMethod(event);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
 <h2 id="4-思考题"><a href="#4-思考题" class="headerlink" title="4. 思考题"></a>4. 思考题</h2><p>至此我们分析完了Guava EventBus 的三个核心步骤，那么问题来了，请问如下代码会如何打印：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@date</span>: 2017/12/26</span></span><br><span class="line"><span class="comment"> * copy from https://stackoverflow.com/questions/21947936/guava-eventbus-dispatching?rq=1</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Test</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">InitiateProcessing</span> </span>&#123; &#125;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">ProcessingStarted</span> </span>&#123; &#125;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">ProcessingResults</span> </span>&#123; &#125;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">ProcessingFinished</span> </span>&#123; &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> EventBus bus = <span class="keyword">new</span> EventBus();</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Subscribe</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">receiveStartRequest</span><span class="params">(InitiateProcessing evt)</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"Got processing request - starting processing"</span>);</span><br><span class="line">        bus.post(<span class="keyword">new</span> ProcessingStarted());</span><br><span class="line"></span><br><span class="line">        System.out.println(<span class="string">"Generating results"</span>);</span><br><span class="line">        bus.post(<span class="keyword">new</span> ProcessingResults());</span><br><span class="line">        System.out.println(<span class="string">"Generating more results"</span>);</span><br><span class="line">        bus.post(<span class="keyword">new</span> ProcessingResults());</span><br><span class="line"></span><br><span class="line">        bus.post(<span class="keyword">new</span> ProcessingFinished());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Subscribe</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">processingStarted</span><span class="params">(ProcessingStarted evt)</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"Processing has started"</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Subscribe</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">resultsReceived</span><span class="params">(ProcessingResults evt)</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"got results"</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Subscribe</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">processingComplete</span><span class="params">(ProcessingFinished evt)</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"Processing has completed"</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        Test t = <span class="keyword">new</span> Test();</span><br><span class="line">        bus.register(t);</span><br><span class="line">        bus.post(<span class="keyword">new</span> InitiateProcessing());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-          
-        
       
     </div>
     
@@ -379,12 +383,12 @@
       
 
       
+      
+      
 
       
 
       
-      
-        <div class="post-eof"></div>
       
     </footer>
   </div>
@@ -394,10 +398,11 @@
   </article>
 
 
-    
-  </section>
 
-  
+    <div class="post-spread">
+      
+    </div>
+  </div>
 
 
           </div>
@@ -405,6 +410,10 @@
 
 
           
+
+  
+
+
 
         </div>
         
@@ -425,8 +434,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
 
-      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
+      <section class="site-overview-wrap sidebar-panel">
         <div class="site-overview">
           <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
             
@@ -470,6 +488,22 @@
         </div>
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Guava-EventBus-源码解析"><span class="nav-number">1.</span> <span class="nav-text">Guava EventBus 源码解析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-引言"><span class="nav-number">1.1.</span> <span class="nav-text">1. 引言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-核心类图"><span class="nav-number">1.2.</span> <span class="nav-text">2. 核心类图</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-实现细节"><span class="nav-number">1.3.</span> <span class="nav-text">3. 实现细节</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-订阅器注册-REGISTER"><span class="nav-number">1.3.1.</span> <span class="nav-text">3.1 订阅器注册(REGISTER)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-事件发布-POST"><span class="nav-number">1.3.2.</span> <span class="nav-text">3.2 事件发布(POST)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-事件处理-INVOKE"><span class="nav-number">1.3.3.</span> <span class="nav-text">3.3 事件处理(INVOKE)</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-思考题"><span class="nav-number">1.4.</span> <span class="nav-text">4. 思考题</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       
@@ -603,6 +637,10 @@
   
 
   
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
 
   
 
