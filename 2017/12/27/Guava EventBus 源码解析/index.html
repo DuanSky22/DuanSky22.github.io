@@ -68,7 +68,7 @@
 
 
 
-  <meta name="keywords" content="Hexo, NexT" />
+  <meta name="keywords" content="Guava EventBus," />
 
 
 
@@ -80,22 +80,23 @@
 
 
 <meta name="description" content="引言​    偶然发现项目中使用了Guava EventBus，短短的不到十个类将pub-sub模式发挥的淋漓尽致。使用起来也非常的方便，为此本文将从源码角度分析Guava EventBus的设计思想。虽然ATA上已经有很多文章分析Guava EventBus了，但发现这些文章都比较久远，而且现在的源码实现方式已经发生了改变，所以本文重新分析了Guava21版本的EventBus实现。 核心类图​">
+<meta name="keywords" content="Guava EventBus">
 <meta property="og:type" content="article">
-<meta property="og:title" content="DuanSky Blog">
-<meta property="og:url" content="http://yoursite.com/2017/12/20/Guava EventBus 源码解析/index.html">
+<meta property="og:title" content="Guava EventBus 源码分析">
+<meta property="og:url" content="http://yoursite.com/2017/12/27/Guava EventBus 源码解析/index.html">
 <meta property="og:site_name" content="DuanSky Blog">
 <meta property="og:description" content="引言​    偶然发现项目中使用了Guava EventBus，短短的不到十个类将pub-sub模式发挥的淋漓尽致。使用起来也非常的方便，为此本文将从源码角度分析Guava EventBus的设计思想。虽然ATA上已经有很多文章分析Guava EventBus了，但发现这些文章都比较久远，而且现在的源码实现方式已经发生了改变，所以本文重新分析了Guava21版本的EventBus实现。 核心类图​">
-<meta property="og:image" content="http://yoursite.com/2017/12/20/Guava%20EventBus%20源码解析/EventBus-Publish-Subscribe.png">
-<meta property="og:image" content="http://yoursite.com/2017/12/20/Guava%20EventBus%20源码解析/eventbus-framework.png">
-<meta property="og:image" content="http://yoursite.com/2017/12/20/Guava%20EventBus%20源码解析/Dispatcher.png">
-<meta property="og:image" content="http://yoursite.com/2017/12/20/Guava%20EventBus%20源码解析/PerThreadQueuedDispatcher.png">
-<meta property="og:image" content="http://yoursite.com/2017/12/20/Guava%20EventBus%20源码解析/LegacyAsyncDispatcher.png">
-<meta property="og:image" content="http://yoursite.com/2017/12/20/Guava%20EventBus%20源码解析/ImmediateDispatcher.png">
-<meta property="og:updated_time" content="2017-12-27T03:45:30.392Z">
+<meta property="og:image" content="http://yoursite.com/2017/12/27/Guava%20EventBus%20源码解析/EventBus-Publish-Subscribe.png">
+<meta property="og:image" content="http://yoursite.com/2017/12/27/Guava%20EventBus%20源码解析/eventbus-framework.png">
+<meta property="og:image" content="http://yoursite.com/2017/12/27/Guava%20EventBus%20源码解析/Dispatcher.png">
+<meta property="og:image" content="http://yoursite.com/2017/12/27/Guava%20EventBus%20源码解析/PerThreadQueuedDispatcher.png">
+<meta property="og:image" content="http://yoursite.com/2017/12/27/Guava%20EventBus%20源码解析/LegacyAsyncDispatcher.png">
+<meta property="og:image" content="http://yoursite.com/2017/12/27/Guava%20EventBus%20源码解析/ImmediateDispatcher.png">
+<meta property="og:updated_time" content="2017-12-27T06:22:11.733Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="DuanSky Blog">
+<meta name="twitter:title" content="Guava EventBus 源码分析">
 <meta name="twitter:description" content="引言​    偶然发现项目中使用了Guava EventBus，短短的不到十个类将pub-sub模式发挥的淋漓尽致。使用起来也非常的方便，为此本文将从源码角度分析Guava EventBus的设计思想。虽然ATA上已经有很多文章分析Guava EventBus了，但发现这些文章都比较久远，而且现在的源码实现方式已经发生了改变，所以本文重新分析了Guava21版本的EventBus实现。 核心类图​">
-<meta name="twitter:image" content="http://yoursite.com/2017/12/20/Guava%20EventBus%20源码解析/EventBus-Publish-Subscribe.png">
+<meta name="twitter:image" content="http://yoursite.com/2017/12/27/Guava%20EventBus%20源码解析/EventBus-Publish-Subscribe.png">
 
 
 
@@ -125,13 +126,13 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/2017/12/20/Guava EventBus 源码解析/"/>
+  <link rel="canonical" href="http://yoursite.com/2017/12/27/Guava EventBus 源码解析/"/>
 
 
 
 
 
-  <title> | DuanSky Blog</title>
+  <title>Guava EventBus 源码分析 | DuanSky Blog</title>
   
 
 
@@ -238,7 +239,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/12/20/Guava EventBus 源码解析/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/12/27/Guava EventBus 源码解析/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="DuanSky">
@@ -255,7 +256,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline"></h1>
+          <h1 class="post-title" itemprop="name headline">Guava EventBus 源码分析</h1>
         
 
         <div class="post-meta">
@@ -267,8 +268,8 @@
               
                 <span class="post-meta-item-text">Veröffentlicht am</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-12-20T15:38:00+08:00">
-                2017-12-20
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-12-27T00:00:00+08:00">
+                2017-12-27
               </time>
             
 
@@ -277,6 +278,39 @@
             
           </span>
 
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">in</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/学习/" itemprop="url" rel="index">
+                    <span itemprop="name">学习</span>
+                  </a>
+                </span>
+
+                
+                
+                  . 
+                
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/学习/Guava-EventBus/" itemprop="url" rel="index">
+                    <span itemprop="name">Guava EventBus</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
           
 
           
@@ -380,6 +414,12 @@
 
     <footer class="post-footer">
       
+        <div class="post-tags">
+          
+            <a href="/tags/Guava-EventBus/" rel="tag"># Guava EventBus</a>
+          
+        </div>
+      
 
       
       
@@ -465,7 +505,25 @@
             
 
             
+              
+              
+              <div class="site-state-item site-state-categories">
+                
+                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-name">Kategorien</span>
+                
+              </div>
+            
 
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">1</span>
+                  <span class="site-state-item-name">Tags</span>
+                
+              </div>
             
 
           </nav>
