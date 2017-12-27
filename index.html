@@ -309,11 +309,11 @@
 </li>
 <li><p>事件监听器根据相应的事件执行对应的动作。</p>
 <p>盗用一下greenrobot的EventBus来说明整个流程，就是如下图所示：</p>
-<p><img src="Guava EventBus 源码解析/EventBus-Publish-Subscribe.png" alt="EventBus-Publish-Subscribe"></p>
+<p><img src="EventBus-Publish-Subscribe.png" alt="EventBus-Publish-Subscribe"></p>
 </li>
 </ul>
 <p>那Guava EventBus是如何实现的呢？如下类图是去掉异常处理等无关的类之后，EventBus的所有核心组件了，可以看出其设计的非常之精巧。作为整个组件的核心-EventBus，它像主控制器一样，控制着所有的事情（所有就称其为总线？）这里说EventBus是“控制”所有事情，是因为它并不是真正的动作执行者，而只是控制其他组件去完成相应的动作。例如（1）注册/取消事件监听器是通过<strong>SubscriberRegistry</strong>组件的<code>register(...)</code>方法完成的；（2）发布事件是通过<strong>Dispatcher</strong>组件的<code>dispatch(...)</code>方法完成的。它像总线一样，让所有的消息都能够顺利的在其上运转起来。（3）事件执行是调用<strong>Subscriber</strong>组件利用反射来实现的。下面我们就要深入到细节，看看它具体是怎么实现的。</p>
-<p><img src="Guava EventBus 源码解析/eventbus-framework.png" alt="EventBus Framework"></p>
+<p><img src="eventbus-framework.png" alt="EventBus Framework"></p>
 <h2 id="3-实现细节"><a href="#3-实现细节" class="headerlink" title="3. 实现细节"></a>3. 实现细节</h2><p>​    在分析实现细节时，我们着重分析pub-sub的三个核心动作，搞清楚了这三个核心的动作，整个EventBus的核心源码也分析的差不多了。下面我们分块来讲解每步动作的实现细节。</p>
 <h3 id="3-1-订阅器注册-REGISTER"><a href="#3-1-订阅器注册-REGISTER" class="headerlink" title="3.1 订阅器注册(REGISTER)"></a>3.1 订阅器注册(REGISTER)</h3><p>​    EventBus注册一个订阅器（也可以称之为监听器，毕竟EventBus代码中使用的名字是listener，下面所说的监听器和订阅者是同一个概念）是通过如下方法实现的，可见它内部是通过SubscriberRegistry的register()方法来实现的，那么下面我们看看这个方法是如何注册的。</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">register</span><span class="params">(Object object)</span> </span>&#123;</span><br><span class="line">  subscribers.register(object);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
