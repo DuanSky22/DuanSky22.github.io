@@ -81,9 +81,9 @@
 
 <meta name="description" content="引言​    偶然发现项目中使用了Guava EventBus，短短的不到十个类将pub-sub模式发挥的淋漓尽致。使用起来也非常的方便，为此本文将从源码角度分析Guava EventBus的设计思想。虽然ATA上已经有很多文章分析Guava EventBus了，但发现这些文章都比较久远，而且现在的源码实现方式已经发生了改变，所以本文重新分析了Guava21版本的EventBus实现。 核心类图​">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Hexo">
+<meta property="og:title" content="DuanSky Blog">
 <meta property="og:url" content="http://yoursite.com/2017/12/20/Guava EventBus 源码解析/index.html">
-<meta property="og:site_name" content="Hexo">
+<meta property="og:site_name" content="DuanSky Blog">
 <meta property="og:description" content="引言​    偶然发现项目中使用了Guava EventBus，短短的不到十个类将pub-sub模式发挥的淋漓尽致。使用起来也非常的方便，为此本文将从源码角度分析Guava EventBus的设计思想。虽然ATA上已经有很多文章分析Guava EventBus了，但发现这些文章都比较久远，而且现在的源码实现方式已经发生了改变，所以本文重新分析了Guava21版本的EventBus实现。 核心类图​">
 <meta property="og:image" content="http://yoursite.com/2017/12/20/Guava%20EventBus%20源码解析/EventBus-Publish-Subscribe.png">
 <meta property="og:image" content="http://yoursite.com/2017/12/20/Guava%20EventBus%20源码解析/eventbus-framework.png">
@@ -93,7 +93,7 @@
 <meta property="og:image" content="http://yoursite.com/2017/12/20/Guava%20EventBus%20源码解析/ImmediateDispatcher.png">
 <meta property="og:updated_time" content="2017-12-27T03:45:30.392Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Hexo">
+<meta name="twitter:title" content="DuanSky Blog">
 <meta name="twitter:description" content="引言​    偶然发现项目中使用了Guava EventBus，短短的不到十个类将pub-sub模式发挥的淋漓尽致。使用起来也非常的方便，为此本文将从源码角度分析Guava EventBus的设计思想。虽然ATA上已经有很多文章分析Guava EventBus了，但发现这些文章都比较久远，而且现在的源码实现方式已经发生了改变，所以本文重新分析了Guava21版本的EventBus实现。 核心类图​">
 <meta name="twitter:image" content="http://yoursite.com/2017/12/20/Guava%20EventBus%20源码解析/EventBus-Publish-Subscribe.png">
 
@@ -131,7 +131,7 @@
 
 
 
-  <title> | Hexo</title>
+  <title> | DuanSky Blog</title>
   
 
 
@@ -161,7 +161,7 @@
     <div class="custom-logo-site-title">
       <a href="/"  class="brand" rel="start">
         <span class="logo-line-before"><i></i></span>
-        <span class="site-title">Hexo</span>
+        <span class="site-title">DuanSky Blog</span>
         <span class="logo-line-after"><i></i></span>
       </a>
     </div>
@@ -241,13 +241,13 @@
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/12/20/Guava EventBus 源码解析/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="John Doe">
+      <meta itemprop="name" content="DuanSky">
       <meta itemprop="description" content="">
       <meta itemprop="image" content="/images/avatar.gif">
     </span>
 
     <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Hexo">
+      <meta itemprop="name" content="DuanSky Blog">
     </span>
 
     
@@ -447,7 +447,7 @@
         <div class="site-overview">
           <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
             
-              <p class="site-author-name" itemprop="name">John Doe</p>
+              <p class="site-author-name" itemprop="name">DuanSky</p>
               <p class="site-description motion-element" itemprop="description"></p>
           </div>
 
@@ -521,7 +521,7 @@
   <span class="with-love">
     <i class="fa fa-user"></i>
   </span>
-  <span class="author" itemprop="copyrightHolder">John Doe</span>
+  <span class="author" itemprop="copyrightHolder">DuanSky</span>
 
   
 </div>
